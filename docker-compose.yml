@@ -3,7 +3,7 @@
 
 services:
   pretix:
-    image: pretix/standalone:latest
+    build: .
     restart: unless-stopped
     depends_on:
       - redis

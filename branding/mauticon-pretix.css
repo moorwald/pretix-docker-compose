@@ -1,0 +1,349 @@
+/*
+ * MautiCon 2026 - Pretix Custom CSS
+ * ----------------------------------
+ * Dark theme matching the Mautic World Conference landing page.
+ * Apply via: Pretix Admin > Event > Settings > Display > Custom CSS
+ *
+ * Design reference: 2026.mauticon.org (Kirby + Tailwind)
+ * Brand colors synced with: src/css/main.css in mautic-world-conference repo
+ *
+ * Last updated: 2026-03-01
+ */
+
+/* ========================================
+   1. FONTS (matching landing page)
+   ======================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&family=Roboto:wght@400;500&family=IBM+Plex+Mono:wght@400&display=swap');
+
+/* ========================================
+   2. CSS CUSTOM PROPERTIES (override Pretix defaults)
+   ======================================== */
+
+:root {
+  /* Mautic Brand */
+  --mautic-gold: #fdb933;
+  --mautic-teal: #00b49d;
+  --mautic-mondo: #4f3d31;
+  --bg-dark: #1a1412;
+  --bg-card: #2a2320;
+  --text-secondary: #a89a8c;
+
+  /* Pretix overrides */
+  --pretix-brand-primary-darken-10: #e5a62e;
+  --pretix-brand-primary-darken-17: #cc9328;
+  --pretix-brand-success: #00b49d;
+  --pretix-brand-success-shade-42: #006959;
+  --pretix-brand-success-tint-85: #ccf0eb;
+  --pretix-brand-success-lighten-20: #33c3b1;
+}
+
+/* ========================================
+   3. GLOBAL DARK BACKGROUND
+   ======================================== */
+
+html, body {
+  background-color: var(--bg-dark) !important;
+  color: #e8e0d8 !important;
+}
+
+body {
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
+/* ========================================
+   4. MAIN CONTENT AREA
+   ======================================== */
+
+.container.main-box {
+  background-color: var(--bg-card) !important;
+  border: 1px solid rgba(253, 185, 51, 0.15) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 0 30px rgba(253, 185, 51, 0.08) !important;
+}
+
+/* ========================================
+   5. HEADINGS & TYPOGRAPHY
+   ======================================== */
+
+h1, h2, h3, h4, h5, h6,
+.event-title {
+  font-family: 'Titillium Web', sans-serif !important;
+  color: #ffffff !important;
+}
+
+h1, .event-title {
+  color: var(--mautic-gold) !important;
+}
+
+p, li, td, th, label, span {
+  color: #e8e0d8;
+}
+
+a {
+  color: var(--mautic-gold) !important;
+}
+
+a:hover, a:focus {
+  color: var(--mautic-teal) !important;
+}
+
+.text-muted {
+  color: var(--text-secondary) !important;
+}
+
+/* ========================================
+   6. NAVIGATION / HEADER
+   ======================================== */
+
+header, nav, .navbar {
+  background-color: var(--bg-dark) !important;
+  border-bottom: 1px solid rgba(253, 185, 51, 0.2) !important;
+}
+
+/* ========================================
+   7. PRODUCT CARDS / ITEMS
+   ======================================== */
+
+.product-row,
+.product-list .product,
+.panel,
+.panel-default {
+  background-color: var(--bg-card) !important;
+  border: 1px solid rgba(253, 185, 51, 0.15) !important;
+  border-radius: 0.75rem !important;
+}
+
+.panel-heading {
+  background-color: rgba(253, 185, 51, 0.08) !important;
+  border-bottom: 1px solid rgba(253, 185, 51, 0.15) !important;
+  color: #ffffff !important;
+}
+
+.panel-heading h3,
+.panel-heading h4 {
+  color: #ffffff !important;
+}
+
+.panel-body {
+  background-color: var(--bg-card) !important;
+}
+
+/* ========================================
+   8. BUTTONS
+   ======================================== */
+
+.btn-primary,
+.btn-primary:focus {
+  background: linear-gradient(135deg, #fdb933 0%, #00b49d 100%) !important;
+  border: none !important;
+  color: var(--bg-dark) !important;
+  font-family: 'Titillium Web', sans-serif !important;
+  font-weight: 700 !important;
+  border-radius: 1rem !important;
+  transition: transform 0.2s, box-shadow 0.2s !important;
+}
+
+.btn-primary:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 20px rgba(253, 185, 51, 0.5) !important;
+}
+
+.btn-default {
+  background-color: var(--bg-card) !important;
+  border: 1px solid rgba(253, 185, 51, 0.3) !important;
+  color: #ffffff !important;
+  border-radius: 0.75rem !important;
+}
+
+.btn-default:hover {
+  background-color: rgba(253, 185, 51, 0.1) !important;
+  border-color: var(--mautic-gold) !important;
+}
+
+/* ========================================
+   9. FORMS & INPUTS
+   ======================================== */
+
+.form-control,
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="tel"],
+input[type="password"],
+textarea,
+select {
+  background-color: var(--bg-dark) !important;
+  border: 1px solid rgba(253, 185, 51, 0.3) !important;
+  border-radius: 0.75rem !important;
+  color: #ffffff !important;
+  padding: 0.75rem 1rem !important;
+}
+
+.form-control:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--mautic-gold) !important;
+  box-shadow: 0 0 10px rgba(253, 185, 51, 0.2) !important;
+  outline: none !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-secondary) !important;
+}
+
+label {
+  color: #ffffff !important;
+  font-family: 'Titillium Web', sans-serif !important;
+  font-weight: 600 !important;
+}
+
+/* ========================================
+   10. TABLES (order summary, etc.)
+   ======================================== */
+
+.table {
+  color: #e8e0d8 !important;
+}
+
+.table > thead > tr > th {
+  border-bottom-color: rgba(253, 185, 51, 0.2) !important;
+  color: var(--mautic-gold) !important;
+  font-family: 'Titillium Web', sans-serif !important;
+}
+
+.table > tbody > tr > td {
+  border-top-color: rgba(253, 185, 51, 0.1) !important;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) {
+  background-color: rgba(253, 185, 51, 0.03) !important;
+}
+
+/* ========================================
+   11. ALERTS & BADGES
+   ======================================== */
+
+.alert-info {
+  background-color: rgba(0, 180, 157, 0.1) !important;
+  border-color: rgba(0, 180, 157, 0.3) !important;
+  color: #e8e0d8 !important;
+}
+
+.alert-warning {
+  background-color: rgba(253, 185, 51, 0.1) !important;
+  border-color: rgba(253, 185, 51, 0.3) !important;
+  color: #e8e0d8 !important;
+}
+
+.alert-success {
+  background-color: rgba(0, 180, 157, 0.15) !important;
+  border-color: rgba(0, 180, 157, 0.4) !important;
+  color: #e8e0d8 !important;
+}
+
+.badge {
+  font-family: 'IBM Plex Mono', monospace !important;
+}
+
+/* ========================================
+   12. VOUCHER INPUT
+   ======================================== */
+
+.voucher-input,
+.voucher-box {
+  background-color: var(--bg-card) !important;
+  border: 1px solid rgba(0, 180, 157, 0.3) !important;
+  border-radius: 0.75rem !important;
+}
+
+/* ========================================
+   13. FOOTER
+   ======================================== */
+
+footer {
+  background-color: var(--bg-dark) !important;
+  border-top: 1px solid rgba(253, 185, 51, 0.15) !important;
+  color: var(--text-secondary) !important;
+}
+
+footer a {
+  color: var(--text-secondary) !important;
+}
+
+footer a:hover {
+  color: var(--mautic-gold) !important;
+}
+
+/* ========================================
+   14. DROPDOWN & QUANTITY SELECTORS
+   ======================================== */
+
+.dropdown-menu {
+  background-color: var(--bg-card) !important;
+  border: 1px solid rgba(253, 185, 51, 0.2) !important;
+}
+
+.dropdown-menu > li > a {
+  color: #e8e0d8 !important;
+}
+
+.dropdown-menu > li > a:hover {
+  background-color: rgba(253, 185, 51, 0.1) !important;
+  color: var(--mautic-gold) !important;
+}
+
+/* ========================================
+   15. PRICE DISPLAY
+   ======================================== */
+
+.price, .price-gross {
+  color: var(--mautic-gold) !important;
+  font-family: 'Titillium Web', sans-serif !important;
+  font-weight: 700 !important;
+}
+
+/* ========================================
+   16. PROGRESS STEPS (checkout flow)
+   ======================================== */
+
+.checkout-steps .step.active,
+.checkout-steps .step.done {
+  color: var(--mautic-gold) !important;
+}
+
+.checkout-steps .step {
+  color: var(--text-secondary) !important;
+}
+
+/* ========================================
+   17. MONOSPACE ELEMENTS (order codes, etc.)
+   ======================================== */
+
+code, pre, .order-code, .mono {
+  font-family: 'IBM Plex Mono', monospace !important;
+  color: var(--mautic-teal) !important;
+}
+
+/* ========================================
+   18. SCROLLBAR (Webkit)
+   ======================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--mautic-mondo);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--mautic-gold);
+}
