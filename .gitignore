@@ -1,6 +1,9 @@
 # Environment (contains secrets)
 .env
 
+# Python test cache
+__pycache__/
+
 # macOS
 .DS_Store
 

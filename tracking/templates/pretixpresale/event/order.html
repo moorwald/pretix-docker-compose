@@ -1,0 +1,15 @@
+{% extends "pretixpresale/event/mwc-order-original.html" %}
+{% load l10n %}
+
+{% block content %}
+    {{ block.super }}
+    {% if request.organizer.slug == "Mautic" and request.event.slug == "mwc2026" and order.status == "p" and order.total > 0 and not order.testmode and not backend_user %}
+        {% if "thanks" in request.GET or "paid" in request.GET %}
+            {# Temporary confirmation-only tracking. Remove after MWC 2026. #}
+            <script defer src="/static/mwc-ads-confirmation-v1.js"
+                    data-value="{{ order.total|unlocalize }}"
+                    data-currency="{{ request.event.currency }}"
+                    data-transaction-id="Mautic-mwc2026-{{ order.code }}"></script>
+        {% endif %}
+    {% endif %}
+{% endblock %}
