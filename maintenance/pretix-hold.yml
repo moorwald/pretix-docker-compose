@@ -5,10 +5,9 @@
 services:
   pretix:
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile
     entrypoint: ["sudo", "-E", "/usr/bin/supervisord", "-n", "-c", "/etc/mwc-maintenance.conf"]
-    command: []
     restart: unless-stopped
     depends_on:
       - redis
