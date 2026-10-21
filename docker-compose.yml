@@ -15,12 +15,6 @@ services:
       PRETIX_PRETIX_CURRENCY: ${PRETIX_CURRENCY:-EUR}
       PRETIX_PRETIX_DATADIR: /data
       PRETIX_PRETIX_REGISTRATION: "off"
-      # Extend (do not replace) Pretix's CSP for the consent-gated Google Ads snippet.
-      # No unsafe-inline or unsafe-eval. Country-specific Google endpoints may need additions.
-      PRETIX_PRETIX_CSP_ADDITIONAL_HEADER: >-
-        script-src https://www.googletagmanager.com https://www.googleadservices.com https://www.google.com;
-        img-src https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.google.com https://www.google.co.uk https://www.google.de;
-        connect-src https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.google.com https://www.google.co.uk https://www.google.de https://ad.doubleclick.net
 
       # Locale
       PRETIX_LOCALE_DEFAULT: ${PRETIX_LOCALE:-en}

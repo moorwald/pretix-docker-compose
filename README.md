@@ -1,103 +1,55 @@
 # Mautic Pretix deployment
 
-Pretix Community Edition on Coolify, pinned to `pretix/standalone:2026.2.0`.
-Shop styling is documented in `branding/README.md`. No Enterprise dependency or
-custom Python plugin is installed for tracking.
+Coolify app `zwocw8osw4sgk00w48ko8gkk`, Git-based Compose, automatic deployment
+from `main`. Runtime remains `pretix/standalone:2026.2.0`. Branding is documented
+in `branding/README.md`.
 
-## Temporary MWC 2026 confirmation snippet
+## Purchase tracking withdrawn, 21 October 2026
 
-Sven chose approximate browser-side measurement for the final two weeks before
-the conference, with manual reconciliation rather than a full tracking platform.
+Purchase measurement is **not enabled**. No custom order template, tracking asset,
+Google CSP extension or host bind is deployed. The conference site's Klaro consent
+and optional landing-page Google Ads tag remain separate from this shop.
+Use Pretix's financial totals for manual reconciliation.
 
-- `Dockerfile` preserves the base image's original order template as
-  `pretixpresale/event/mwc-order-original.html`, then installs a thin wrapper.
-  The wrapper extends that exact original, preserving all order-page content.
-- `tracking/templates/pretixpresale/event/order.html` adds a self-hosted external
-  script only for `Mautic/mwc2026`, paid orders with a positive total, and a
-  `thanks` or `paid` confirmation marker. Free, pending, cancelled, test-mode,
-  backend and ordinary later order views do not load it.
-- `tracking/assets/mwc-ads-confirmation-v1.js` is bundled in the image's existing
-  static directory and served as `/static/mwc-ads-confirmation-v1.js`.
-- The script requires the Klaro `mwc_consent` cookie to contain the Boolean
-  `google-ads: true` before loading Google. The conference site sets this cookie
-  on `.mautic.org`. There is no extra Pretix consent prompt: absent or rejected
-  consent means no tracking. Deploy conference consent first.
-- The event contains the real total/currency and stable transaction ID
-  `Mautic-mwc2026-ORDER_CODE` for Google's deduplication. No order access secret,
-  name or email is included. Standard measurement URL/title/referrer fields are
-  replaced with non-private values. Personalisation and analytics storage remain off.
-- `PRETIX_PRETIX_CSP_ADDITIONAL_HEADER` adds the documented Google Ads destinations
-  without `unsafe-inline` or `unsafe-eval`. The confirmation hook itself is external
-  same-origin JavaScript, not an inline script.
+The temporary confirmation snippet passed unit and stubbed-browser checks, but a
+subsequent isolated test with the **real Google tag** demonstrated that overriding
+`page_location` and `page_referrer` does not protect the private order URL: Google
+constructs additional `top` and `dl` parameters containing that URL. All measurement
+requests in that test were intercepted; no fabricated conversions were sent.
+The live hook was immediately disabled in `0b10e37`, completed at
+2026-10-21 11:19:05 UTC. This withdrawal then removes its unused image additions.
 
-No tracking code is copied into `/data`; no host-file bind mounts or repository
-preservation setting are required. Runtime remains `pretixuser`. The Python core
-is unmodified; the small template wrapper and static asset are part of the image.
+Do **not** reactivate the old snippet. A future implementation needs a public,
+cross-origin measurement document, no-referrer embedding and a narrowly validated
+message containing only non-secret transaction ID, amount and currency. Google
+must never execute in the private order-page context. That replacement is not
+implemented or approved by this rollback.
 
-### Deliberate limitations
+Actual customer exposure during the brief rollout is not established by the
+synthetic test. Check retained access logs for confirmation views in the broader
+2026-10-21 10:55–11:20 UTC window. Even a matching response would not prove that
+advertising consent was present or that Google received a conversion. Do not print
+order access secrets, names, emails or complete private URLs during that check.
 
-Ad blockers, absent/rejected consent, direct-shop visits without prior conference
-consent, closed confirmation pages, payment/webhook timing and unlisted regional
-Google endpoints can cause missing conversions. Refund adjustment, delayed-payment
-reconciliation and server-side attribution are intentionally not implemented.
-Pretix remains the source of truth. Never generate artificial click IDs or fake
-live conversions for testing.
+## Deployment incidents
 
-## Deployment and rollback
+- The first file-bind deployment failed because Coolify created the file sources
+  as directories. GitHub connection timeouts then delayed recovery. Git revert
+  `7bbc528` restored the pre-tracking source and HTTP 200.
+- The image-bundled retry exposed a second issue: a trailing semicolon crashes
+  Pretix 2026.2.0's CSP parser. `de2c83b` corrected it and restored HTTP 200 before
+  the real-tag privacy test prompted withdrawal.
+- No application-version update or deliberate database/data migration was made.
+  Repository preservation was restored to its original `false` value.
 
-Coolify app: `zwocw8osw4sgk00w48ko8gkk`, Git-based Compose, automatic deployments
-from `main`. Sven approved testing and release on 21 October 2026.
+## Maintenance readiness
 
-1. Deploy the conference consent change and verify its shared cookie scope.
-2. Build and run the local image checks below. They must preserve the exact
-   upstream template and serve the JavaScript through the real image's nginx.
-3. Release through Git/Coolify. Do not run manual Docker/SSH deployment workarounds.
-4. Check the deployment result **and** the public shop, script MIME type/content
-   hash, CSP and synthetic-browser consent cases. A failed Compose deployment can
-   leave the shop unavailable; success must not be inferred from a queued request.
-5. To roll back this tracking-only release, revert its Git changes and verify the
-   corresponding Coolify deployment. Git branch HEAD and the intended Compose
-   restore definition must agree. No database or `/data` migration is introduced
-   by the snippet; application-version upgrades have separate backup requirements.
-
-### Incident note
-
-The initial file-bind implementation was withdrawn. On 21 October, Coolify created
-file-bind sources as directories and failed during repository preservation. The
-shop returned HTTP 503. Several rollback attempts were additionally blocked by
-GitHub connection timeouts from the deployment server. Reverting Git `main` to
-its pre-tracking tree (`7bbc528`) restored HTTP 200 before this image-bundled
-replacement was prepared. Repository preservation was returned to its original
-`false` value. No database contents or schema were deliberately modified.
-Do not reintroduce those host file binds as an emergency fix.
-
-**Cleanup after the conference (6 November 2026):** remove the Dockerfile template/
-asset additions, extra CSP setting and temporary tracking sources via Git/Coolify.
-The next base-image deployment then supplies the original template automatically;
-there are no tracking files to remove from the persistent data volume.
-
-## Checks
-
-```sh
-uv run --no-project --with 'Django==4.2.28' python tests/test_confirmation.py
-node --test tests/confirmation.test.cjs
-POSTGRES_PASSWORD=validation-placeholder docker compose config --quiet
-docker build -t mwc-pretix-tracking-test .
-./tests/container-smoke.sh
-```
-
-The container checks use the exact bundled Django version, compare the original
-and backed-up upstream template hashes, verify the unchanged runtime user, and
-start only nginx on a loopback test port to verify JavaScript delivery. No real
-Pretix database, outgoing email or Google endpoint is used.
-
-The conference repository's `npm run test:browser` covers desktop/tablet/mobile
-consent, separate choices, rejection, withdrawal and synthetic iframe/new-tab
-confirmations, intercepting all measurement. It does not make a real Stripe
-payment. The separate urgent update plan is in
+Pretix, Django, Stripe and the conference's Kirby/PHP stack have separate urgent
+security findings. No backup/restore rehearsal was verified, so this deployment
+must not be described as update-ready or patched. See
 `~/Development/mautic-world-conference/docs/security-readiness-2026-10-21.md`.
 
-## Sources
-
-- Pretix 2026.2.0 order template, nginx config and `deployment/docker/pretix.bash`.
-- https://developers.google.com/tag-platform/security/guides/csp (Google Ads sources).
+Use Git/Coolify for releases. Do not use manual SSH/Docker deployment workarounds.
+A Compose rollback must restore the Git branch's definition as well as selecting
+a previous revision in Coolify. Do not create chargeable test orders or fake live
+advertising conversions.
