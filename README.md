@@ -1,7 +1,8 @@
 # Mautic Pretix deployment
 
 Coolify app `zwocw8osw4sgk00w48ko8gkk`, Git-based Compose, automatic deployment
-from `main`. Runtime remains `pretix/standalone:2026.2.0`. Branding is documented
+from `main` outside a controlled maintenance window. Runtime pin is
+`pretix/standalone:2026.8.0`. Branding is documented
 in `branding/README.md`.
 
 ## Purchase tracking withdrawn, 21 October 2026
