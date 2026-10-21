@@ -13,3 +13,7 @@
 # Claude Code
 CLAUDE.md
 .claude/
+
+# Local maintenance tooling
+__pycache__/
+*.py[cod]

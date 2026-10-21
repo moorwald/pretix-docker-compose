@@ -42,12 +42,52 @@ order access secrets, names, emails or complete private URLs during that check.
 - No application-version update or deliberate database/data migration was made.
   Repository preservation was restored to its original `false` value.
 
-## Maintenance readiness
+## Controlled upgrade preparation, 21 October 2026
 
-Pretix, Django, Stripe and the conference's Kirby/PHP stack have separate urgent
-security findings. No backup/restore rehearsal was verified, so this deployment
-must not be described as update-ready or patched. See
-`~/Development/mautic-world-conference/docs/security-readiness-2026-10-21.md`.
+The target `2026.8.0` has passed an isolated rehearsal using the real encrypted
+backup. Native PostgreSQL restore, all intervening migrations, existing paid-order
+views, public shop/widget, ticket PDF generation, stored invoice PDF, login and
+authenticated event API passed. Stable financial/access fields in orders,
+positions and payments remained identical. A full database AND file rollback to
+`2026.2.0` passed the same checks. No workers, outgoing mail, real payments or
+Google measurement ran in the test network; no ports were published.
+
+Operator tooling is under `maintenance/`. It is not application/tracking code.
+
+- `export_backup.py`: native `pg_dump`, data archive and OpenSSL CMS encryption
+  (AES-256-GCM, RSA-OAEP-SHA256). Only ciphertext briefly uses an existing media
+  download path; it is removed after transfer. Private receiver keys stay in
+  Infisical. Local decrypted test data stays outside Git in a mode-0700 directory.
+- `qa_pretix.py`: baseline restore, upgrade and rollback with separate local data
+  copies in an internal Docker network. Reports contain only hashes/statuses.
+- `pretix-hold.yml` and `pretix-hold.conf`: deliberate nginx-only maintenance,
+  without app workers or automatic migration. The same volumes, environment and
+  dependencies are retained. Ordinary shop/API requests intentionally return 502
+  while encrypted backup downloads and controlled Coolify tasks remain available.
+- `test_backup_protocol.py` and `test_hold.sh`: synthetic protocol and maintenance
+  tests. Do not use native `clone --clone-volumes` casually: that implementation
+  stops the source and queues source deployments per volume.
+
+Release gates: enter hold on the old image, refresh the off-server encrypted
+backup, switch hold to the target image, run/verify migrations and financial
+fingerprints, then return the resource to `main` and `/docker-compose.yml`.
+Prefetch the target image through a temporary, data-free Coolify resource before
+pausing sales. Remove that resource after release.
+
+Recovery: keep writers stopped in hold. The matching native SQL dump remains
+protected in the database volume (`mwc-pre-<nonce>.dump`); the corresponding data
+archive remains in `/data/.m<nonce>/data.tgz`. With no app connections, recreate
+the database, restore it with `pg_restore --exit-on-error`, restore the matching
+data archive, then select the old image. Do not run old application code against
+the migrated schema. This procedure was rehearsed in the disposable copy.
+
+These are one-off pre-upgrade backups, not an automatic recurring backup service
+or proof of complete host-disaster recovery. Follow-up: agree retention and
+recurring offsite backup policy. The receiver key's Infisical reference is in the
+private local backup manifest, never in a public download or a task command.
+
+The conference's Kirby/PHP stack has separate security findings and release gates.
+See `~/Development/mautic-world-conference-tracking-release/docs/security-readiness-2026-10-21.md`.
 
 Use Git/Coolify for releases. Do not use manual SSH/Docker deployment workarounds.
 A Compose rollback must restore the Git branch's definition as well as selecting
