@@ -1,0 +1,14 @@
+{% extends "pretixpresale/event/mwc-order-original.html" %}
+{% load l10n %}
+{% block custom_header %}
+    {{ block.super }}
+    {% if request.organizer.slug == "Mautic" and request.event.slug == "mwc2026" and order.status == "p" and order.total > 0 and not order.testmode and not backend_user %}
+        {% if "thanks" in request.GET or "paid" in request.GET %}
+            {# Versioned asset is bundled after upstream collectstatic; keep its frozen manifest untouched. #}
+            <script defer referrerpolicy="no-referrer" src="/static/mwc-ads-bridge-v1.js"
+                    data-transaction-id="Mautic-mwc2026-{{ order.code }}"
+                    data-value="{{ order.total|unlocalize }}"
+                    data-currency="{{ request.event.currency }}"></script>
+        {% endif %}
+    {% endif %}
+{% endblock %}

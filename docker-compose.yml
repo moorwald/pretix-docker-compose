@@ -15,6 +15,8 @@ services:
       PRETIX_PRETIX_CURRENCY: ${PRETIX_CURRENCY:-EUR}
       PRETIX_PRETIX_DATADIR: /data
       PRETIX_PRETIX_REGISTRATION: "off"
+      # Add only our public cross-origin frame, never Google execution here.
+      PRETIX_PRETIX_CSP_ADDITIONAL_HEADER: "frame-src https://mauticon.mautic.org"
 
       # Locale
       PRETIX_LOCALE_DEFAULT: ${PRETIX_LOCALE:-en}

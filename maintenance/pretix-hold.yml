@@ -18,6 +18,8 @@ services:
       PRETIX_PRETIX_CURRENCY: ${PRETIX_CURRENCY:-EUR}
       PRETIX_PRETIX_DATADIR: /data
       PRETIX_PRETIX_REGISTRATION: "off"
+      # Keep maintenance environment identical to the normal stack.
+      PRETIX_PRETIX_CSP_ADDITIONAL_HEADER: "frame-src https://mauticon.mautic.org"
       PRETIX_LOCALE_DEFAULT: ${PRETIX_LOCALE:-en}
       PRETIX_LOCALE_TIMEZONE: ${PRETIX_TIMEZONE:-Europe/London}
       PRETIX_DATABASE_BACKEND: postgresql

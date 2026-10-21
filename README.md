@@ -5,26 +5,40 @@ from `main` outside a controlled maintenance window. Runtime pin is
 `pretix/standalone:2026.8.0`. Branding is documented
 in `branding/README.md`.
 
-## Purchase tracking withdrawn, 21 October 2026
+## Isolated purchase bridge, 21 October 2026
 
-Purchase measurement is **not enabled**. No custom order template, tracking asset,
-Google CSP extension or host bind is deployed. The conference site's Klaro consent
-and optional landing-page Google Ads tag remain separate from this shop.
-Use Pretix's financial totals for manual reconciliation.
+Sven approved the new cross-origin implementation and deployment. It deliberately
+replaces, rather than reactivates, the withdrawn direct-page Google design.
+The source implementation is accepted only after both releases and real-SDK
+live-asset checks succeed; see the protected off-server purchase release record.
 
-The temporary confirmation snippet passed unit and stubbed-browser checks, but a
-subsequent isolated test with the **real Google tag** demonstrated that overriding
-`page_location` and `page_referrer` does not protect the private order URL: Google
-constructs additional `top` and `dl` parameters containing that URL. All measurement
-requests in that test were intercepted; no fabricated conversions were sent.
-The live hook was immediately disabled in `0b10e37`, completed at
-2026-10-21 11:19:05 UTC. This withdrawal then removes its unused image additions.
+- Only `Mautic/mwc2026`, genuinely paid positive-value non-test confirmations with
+  `paid`/`thanks` query flags and no backend-user preview load the bridge.
+- The exact 2026.8.0 upstream order template is preserved as a parent. Only the
+  header is extended. Its SHA-256 is a build gate for future upstream upgrades.
+- The private page runs ONLY our versioned `/static/mwc-ads-bridge-v1.js`.
+  It embeds `https://mauticon.mautic.org/ads-conversion/` without a referrer.
+- Exact origin/source checks and schema validation allow only the non-secret
+  `Mautic-mwc2026-<order.code>`, actual gross total and currency after Ads consent.
+- Google runs only in that public document, never the private order context.
+  Both sides check the shared Klaro cookie. The parent CSP adds only the public
+  frame origin, not Google script/connect permissions. No host-file bind is used.
+- Destination: `AW-960227364/zd9jCL3G3KQdEKTQ78kD`. Browser suppression plus Google's
+  stable transaction ID handle duplicates; queuing is not proof of attribution.
+  Free Sprint registrations, ordinary receipt visits and refunds are not emitted.
 
-Do **not** reactivate the old snippet. A future implementation needs a public,
-cross-origin measurement document, no-referrer embedding and a narrowly validated
-message containing only non-secret transaction ID, amount and currency. Google
-must never execute in the private order-page context. That replacement is not
-implemented or approved by this rollback.
+The complete protocol, limits and real-SDK tests live in the conference repo:
+`~/Development/mautic-world-conference-tracking-release/docs/google-ads-tracking.md`.
+Run `python3 tracking/test_confirmation.py <protected-backup-directory>` after
+building `mwc-pretix-relay-qa` to test the real restored order/PDF/API views and
+nine negative template contexts offline. The bundled server-only
+`/pretix/src/mwc_confirmation_probe.py` can verify production rendering through a
+controlled Coolify task without executing any browser or advertising JavaScript.
+
+The previous direct snippet was disabled at 2026-10-21 11:19:05 UTC in `0b10e37`
+and removed in `65a9f0e`. Its real-SDK test revealed private URLs in `top`/`dl`
+despite page-location overrides. Do **not** restore it. All measurements in the
+privacy tests were intercepted; no synthetic production conversion was sent.
 
 Actual customer exposure during the brief rollout is not established by the
 synthetic test. Check retained access logs for confirmation views in the broader
@@ -40,8 +54,8 @@ order access secrets, names, emails or complete private URLs during that check.
 - The image-bundled retry exposed a second issue: a trailing semicolon crashes
   Pretix 2026.2.0's CSP parser. `de2c83b` corrected it and restored HTTP 200 before
   the real-tag privacy test prompted withdrawal.
-- No application-version update or deliberate database/data migration was made.
-  Repository preservation was restored to its original `false` value.
+- Those earlier tracking rollouts did not update application/database versions.
+  The later security upgrade is separate. Repository preservation remains `false`.
 
 ## Controlled upgrade preparation, 21 October 2026
 

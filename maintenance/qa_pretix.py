@@ -112,7 +112,7 @@ def unpack(folder):
     return clear
 
 
-def main(folder):
+def main(folder, target_image='pretix/standalone:2026.8.0', extra_check='', target_environment=None):
     os.umask(0o077)
     clear = unpack(folder)
     suffix = uuid.uuid4().hex[:10]
@@ -136,12 +136,16 @@ def main(folder):
         else:
             raise TimeoutError('Local PostgreSQL did not start')
         docker('run', '-d', '--name', redis, '--network', network, '--network-alias', 'redis', 'redis:7-alpine')
-        for mode, image in [('baseline', 'pretix/standalone:2026.2.0'), ('upgrade', 'pretix/standalone:2026.8.0')]:
+        for mode, image in [('baseline', 'pretix/standalone:2026.2.0'), ('upgrade', target_image)]:
             database = 'pretix_' + mode
             docker('exec', pg, 'createdb', '-U', 'pretix', database)
             docker('exec', pg, 'pg_restore', '--exit-on-error', '-U', 'pretix', '-d', database, '/restore/db')
             client = network + '-' + mode
             clients.append(client)
+            custom_env = []
+            if mode == 'upgrade':
+                for key, value in (target_environment or {}).items():
+                    custom_env.extend(['-e', key + '=' + value])
             common = ['run', '--rm', '--name', client, '--network', network,
                       '--user', f'{os.getuid()}:{os.getgid()}',
                       '-v', f'{folder / ("pretix-" + mode + "-data")}:/data',
@@ -155,15 +159,18 @@ def main(folder):
                       '-e', 'PRETIX_CELERY_BACKEND=redis://redis:6379/' + ('1' if mode == 'baseline' else '4'),
                       '-e', 'PRETIX_CELERY_BROKER=redis://redis:6379/' + ('2' if mode == 'baseline' else '5'),
                       '-e', 'DJANGO_SETTINGS_MODULE=production_settings',
-                      '--entrypoint', 'python', image, '-m', 'pretix']
+                      *custom_env, '--entrypoint', 'python', image, '-m', 'pretix']
             if mode == 'upgrade':
                 output = docker(*common, 'migrate', '--noinput', timeout=600, env=stage_env)
                 applied = [line.strip() for line in output.splitlines() if line.strip().startswith('Applying ')]
                 report['applied_migrations'] = applied
-            output = docker(*common, 'shell', '-c', CHECK, env=stage_env)
+            output = docker(*common, 'shell', '-c', CHECK + (extra_check if mode == 'upgrade' else ''), env=stage_env)
             lines = [line for line in output.splitlines() if line.startswith('MWC_QA_RESULT ')]
             assert len(lines) == 1, 'Expected one sanitized QA result'
             report[mode] = json.loads(lines[0].removeprefix('MWC_QA_RESULT '))
+            extra = [line for line in output.splitlines() if line.startswith('MWC_QA_EXTRA ')]
+            if extra:
+                report[mode]['extra_checks'] = [json.loads(line.removeprefix('MWC_QA_EXTRA ')) for line in extra]
             print(mode, 'restored and passed HTTP/financial checks', flush=True)
         assert report['baseline']['financial'] == report['upgrade']['financial'], 'Financial/access fields changed during migration'
         report['financial_and_access_fields_preserved'] = True
@@ -177,7 +184,7 @@ def main(folder):
         with tarfile.open(clear / 'data.tgz') as archive:
             archive.extractall(rollback_data, filter='data')
         rollback_command = common.copy()
-        rollback_command[rollback_command.index('pretix/standalone:2026.8.0')] = 'pretix/standalone:2026.2.0'
+        rollback_command[rollback_command.index(target_image)] = 'pretix/standalone:2026.2.0'
         output = docker(*rollback_command, 'shell', '-c', CHECK, env=stage_env)
         lines = [line for line in output.splitlines() if line.startswith('MWC_QA_RESULT ')]
         assert len(lines) == 1
